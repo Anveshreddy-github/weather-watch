@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Watch</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="weather-watch">
+        <h1>Weather Watch</h1>
+        <p>Stay informed about severe weather events and find safety</p>
+    
+        <div class="current-weather">
+            <h2>Current Weather</h2>
+            <p>Location: <span id="location"></span></p>
+            <p>Temperature: <span id="temperature"></span></p>
+            <p>Weather Condition: <span id="weather-condition"></span></p>
+        </div>
+    
+        <div class="location-input">
+            <label for="location-input">Enter your location:</label>
+            <input type="text" id="location-input" placeholder="City, Country">
+            <button id="get-weather">Get Weather </button>
+        </div>
+
+        <div class="flood-risk">
+            <h2>Flood Risk</h2>
+            <p>Risk Level: <span id="flood-risk-level"></span></p>
+            <p>Safest Location: <span id="safest-location"></span></p>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            function setWeatherBackground(weatherDescription) {
+                // Map weather conditions to corresponding background images
+                const backgroundMap = {
+                    'haze': 'url("./pics/perfect-sunny-day.jpg")',
+                    'few clouds': 'url("./pics/clouds.jpg")',
+                    'scattered clouds': 'url("./pics/clouds.jpg")',
+                    'broken clouds': 'url("./pics/clouds.jpg")',
+                    'few clouds': 'url("./pics/clouds.jpg")',
+                    'smoke': 'url("./pics/smoke.jpg")',
+                    'shower rain': 'url("./pics/rainy day.jpg")',
+                    'rain': 'url("./pics/rainy day.jpg")',
+                    'thunderstorm': 'url("./pics/thunderstrom.jpg")',
+                    'snow': 'url("./pics/snow.jpg")',
+                    'mist': 'url("./pics/mist.jpg")'
+                };
+
+                const body = $('body');
+                document.body.style.backgroundImage = backgroundMap[weatherDescription.toLowerCase()] || 'none';
+            }
+
+            $("#get-weather").click(function() {
+                let location = $("#location-input").val();
+                let apiKey = "9757e33872581a759bbbf2643823f8ad";
+        
+                $.ajax({
+                    url: `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${apiKey}`,
+                    type: "GET",
+                    dataType: "jsonp",
+                    success: function(data) {
+                        $("#location").text(`${data.name}, ${data.sys.country}`);
+                        $("#temperature").text(`${Math.round(data.main.temp - 273.15)} °C`);
+                        $("#weather-condition").text(data.weather[0].description);
+                        setWeatherBackground(data.weather[0].description);
+                        let floodRiskLevel;
+                        if (Math.round(data.main.temp - 273.15) < 18) {
+                            floodRiskLevel = "High";
+                        } else {
+                            floodRiskLevel = "Low";
+                        }
+                        let safestLocation = floodRiskLevel === "Low" ? "Current Location" : "Alternative Location";
+                        $("#flood-risk-level").text(floodRiskLevel);
+                        $("#safest-location").text(safestLocation);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
